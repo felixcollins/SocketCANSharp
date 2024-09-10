@@ -1,12 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <OutputType>Library</OutputType>
     <AssemblyName>SocketCANSharp</AssemblyName>
     <Version>0.11.0.0</Version>
     <Authors>Derek Will</Authors>
-    <Company></Company>
+    <Company>
+    </Company>
     <Title>SocketCAN#</Title>
     <Product>SocketCAN#</Product>
     <PackageId>SocketCANSharp</PackageId>
@@ -24,9 +24,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
-
   <ItemGroup>
-    <None Include="README.md" Pack="true" PackagePath="\"/>
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
-
 </Project>

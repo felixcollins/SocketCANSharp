@@ -1,11 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\src\SocketCANSharp\SocketCANSharp.csproj" />
   </ItemGroup>
+  <Target Name="CustomActionsAfterPublish" AfterTargets="Publish">
+    <PropertyGroup>
+      <PowerShellExe Condition=" '$(PowerShellExe)'=='' ">
+        %WINDIR%\System32\WindowsPowerShell\v1.0\powershell.exe
+      </PowerShellExe>
+    </PropertyGroup>
+    <Message Text="Copy to sampextx2" Importance="high" />
+    <Exec Command="$(PowerShellExe) scp -r bin\$(ConfigurationName)\net8.0\publish\linux-arm64\* tx2@sampextx2:~/CanBusSniffer/" />
+  </Target>
+
 </Project>
