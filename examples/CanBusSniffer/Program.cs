@@ -39,6 +39,7 @@ using System.Net.Sockets;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using SocketCANSharp;
+using SocketCANSharp.Network;
 
 namespace CanBusSniffer
 {
@@ -49,39 +50,65 @@ namespace CanBusSniffer
     {
         private static readonly BlockingCollection<CanFrame> concurrentQueue = new BlockingCollection<CanFrame>();
 
+		//private static SafeFileDescriptorHandle socketHandle;
+		private static RawCanSocket socket;
+
+		// Replace this string with the if you want to use.
+		// $ifconfig to see what it is called - you may need to configure interfaces for your platform first
+		// vcan0 would be another likely option
+		const string CanIfToSniff = "can0";
+
         static void Main(string[] args)
         {
-            using (SafeFileDescriptorHandle socketHandle = LibcNativeMethods.Socket(SocketCanConstants.PF_CAN, SocketType.Raw, SocketCanProtocolType.CAN_RAW))
+			//////////////////////////////////////////////////////
+			/// NB: Code converted from using the native calls to using the RawCanSocket class
+			/// I've left the original interop calls as comments
+			//////////////////////////////////////////////////////
+			///
+			//socketHandle = LibcNativeMethods.Socket(SocketCanConstants.PF_CAN, SocketType.Raw, SocketCanProtocolType.CAN_RAW);
+			socket = new RawCanSocket();
+
+			//using (socketHandle)
+			using (socket)
             {
-                if (socketHandle.IsInvalid)
+                //if (socketHandle.IsInvalid)
+				if(socket.SafeHandle.IsInvalid)
                 {
                     Console.WriteLine("Failed to create socket.");
                     return;
                 }
 
-                var ifr = new Ifreq("vcan0");
-                int ioctlResult = LibcNativeMethods.Ioctl(socketHandle, SocketCanConstants.SIOCGIFINDEX, ifr);
-                if (ioctlResult == -1)
-                {
-                    Console.WriteLine("Failed to look up interface by name.");
-                    return;
-                }
+				//var ifr = new Ifreq(CanIfToSniff);
 
-                var addr = new SockAddrCan(ifr.IfIndex);
-                int bindResult = LibcNativeMethods.Bind(socketHandle, addr, Marshal.SizeOf(typeof(SockAddrCan)));
-                if (bindResult == -1)
-                {
-                    Console.WriteLine("Failed to bind to address.");
-                    return;
-                }
+				//            //int ioctlResult = LibcNativeMethods.Ioctl(socketHandle, SocketCanConstants.SIOCGIFINDEX, ifr);
+				//int ioctlResult = LibcNativeMethods.Ioctl(socket.SafeHandle, SocketCanConstants.SIOCGIFINDEX, ifr);
+				//if (ioctlResult == -1)
+				//            {
+				//                Console.WriteLine("Failed to look up interface by name.");
+				//                return;
+				//            }
 
-                int frameSize = Marshal.SizeOf(typeof(CanFrame));
-                Console.WriteLine("Sniffing vcan0...");
+				//				var addr = new SockAddrCan(ifr.IfIndex);
+				//socket.Bind(addr);
+
+				var iface = CanNetworkInterface.GetInterfaceByName(socket.SafeHandle, CanIfToSniff);
+				socket.Bind(iface);
+
+				//int bindResult = LibcNativeMethods.Bind(socketHandle, addr, Marshal.SizeOf(typeof(SockAddrCan)));
+				//            if (bindResult == -1)
+				//            {
+				//                Console.WriteLine("Failed to bind to address.");
+				//                return;
+				//            }
+
+				//int frameSize = Marshal.SizeOf(typeof(CanFrame));
+                Console.WriteLine($"Sniffing {CanIfToSniff}...");
                 Task.Run(() => PrintLoop());
                 while (true)
                 {
                     var readFrame = new CanFrame();
-                    int nReadBytes = LibcNativeMethods.Read(socketHandle, ref readFrame, frameSize); 
+					int nReadBytes = socket.Read(out readFrame);
+                    //int nReadBytes = LibcNativeMethods.Read(socketHandle, ref readFrame, frameSize); 
                     if (nReadBytes > 0)
                     {
                         concurrentQueue.Add(readFrame);
@@ -94,16 +121,44 @@ namespace CanBusSniffer
         {
             while (true)
             {
-                CanFrame readFrame = concurrentQueue.Take();
-                if ((readFrame.CanId & (uint)CanIdFlags.CAN_RTR_FLAG) != 0)
-                {
-                    Console.WriteLine($"{SocketCanConstants.CAN_ERR_MASK & readFrame.CanId,8:X}   [{readFrame.Length:D2}]  RTR");
-                }
-                else
-                {
-                    Console.WriteLine($"{SocketCanConstants.CAN_ERR_MASK & readFrame.CanId,8:X}   [{readFrame.Length:D2}]  {BitConverter.ToString(readFrame.Data.Take(readFrame.Length).ToArray()).Replace("-", " ")}");
-                }
-            }
+                CanFrame readFrame;
+				if (concurrentQueue.TryTake(out readFrame, 500))
+				{
+					if ((readFrame.CanId & (uint)CanIdFlags.CAN_RTR_FLAG) != 0)
+					{
+						Console.WriteLine($"{SocketCanConstants.CAN_ERR_MASK & readFrame.CanId,8:X}   [{readFrame.Length:D2}]  RTR");
+					}
+					else
+					{
+						Console.WriteLine($"{SocketCanConstants.CAN_ERR_MASK & readFrame.CanId,8:X}   [{readFrame.Length:D2}]  {BitConverter.ToString(readFrame.Data.Take(readFrame.Length).ToArray()).Replace("-", " ")}");
+					}
+				}
+
+				// Some extra stuff to allow testing sending frames
+				// if you use candump or otherwise have some means of monitoring
+				// the bus this is useful to prove that you can send.
+				// This could also be easily adapted to make a test program for talking
+				// to simple CAN devices
+				if (Console.KeyAvailable)
+				{
+					var character = Console.Read();
+
+					Console.WriteLine("Sending Some Data");
+					byte[] data = new byte[] { 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f };
+					CanFrame frame = new CanFrame(1,[1,2,3,4,5,6,7,8]);
+					int writeResult = socket.Write(frame);
+					//int writeResult = LibcNativeMethods.Write(socketHandle, data, data.Length);
+
+					if (writeResult == -1)
+					{
+						Console.WriteLine($"Write returned {LibcNativeMethods.Errno}");
+					}
+					else
+					{
+						Console.WriteLine($"Wrote {writeResult} bytes");
+					}
+				}
+			}
         }
     }
 }
