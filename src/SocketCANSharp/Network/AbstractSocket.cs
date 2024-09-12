@@ -170,7 +170,8 @@ namespace SocketCANSharp.Network
         /// </summary>
         public void Close()
         {
-            Dispose();
+			LibcNativeMethods.Close(SafeHandle.DangerousGetHandle());
+			Dispose();
         }
 
         /// <summary>
