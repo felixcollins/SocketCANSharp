@@ -32,15 +32,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #endregion
 
+using SocketCANSharp;
+
 using System;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
-
 namespace SocketCANSharp
 {
-    /// <summary>
-    /// C Standard Library Native Methods
-    /// </summary>
+	/// <summary>
+	/// C Standard Library Native Methods
+	/// </summary>
     public static class LibcNativeMethods
     {
         /// <summary>
@@ -909,5 +910,48 @@ namespace SocketCANSharp
         /// <returns>Valid IntPtr pointing to a buffer containing the Interface Name on success, IntPtr.Zero (null) on failure.</returns>
         [DllImport("libc", EntryPoint="if_indextoname", SetLastError=true)]
         public static extern IntPtr IfIndexToName(uint index, IntPtr namePtr);
-    }
+
+		public static ushort POLLIN => 0x001;
+		public static ushort POLLPRI => 0x002;
+		public static ushort POLLOUT => 0x004;
+		public static ushort POLLERR => 0x008;
+		public static ushort POLLHUP => 0x010;
+		public static ushort POLLNVAL => 0x020;
+		public static ushort POLLMSG => 0x400;
+		public static ushort POLLRDHUP => 0x2000;
+
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct pollfd
+		{
+			public int fd;         // File descriptor to poll
+			public short events;   // Requested events to watch
+			public short revents;  // Returned events
+		}
+
+		/// <summary>
+		/// Polls the file descriptors for the specified events.
+		/// 
+		/// Example usage:
+		/// var pollfd = new LibcNativeMethods.pollfd();
+		/// pollfd[] pollfdarray = [pollfd];
+		/// pollfd.fd = (int) socket.SafeHandle.DangerousGetHandle();
+		/// var res = LibcNativeMethods.poll( pollfdarray, (ulong)pollfdarray.Length, 500);
+		/// if (res == -1)
+		/// {
+		///  throw new Exception("Error polling socket in CanOpen SocketCanDriver.");
+		/// }
+		/// if ((ushort)(pollfdarray[0].revents & LibcNativeMethods.POLLIN) == LibcNativeMethods.POLLIN)
+		/// {
+		///  Message rxmsg = canreceive();
+		///  etc....
+		/// }
+		/// </summary>
+		/// <param name="fds">Array of pollfd structures representing the file descriptors to poll.</param>
+		/// <param name="nfds">The number of file descriptors in the array.</param>
+		/// <param name="timeout">The maximum time to wait for an event, in milliseconds. Use -1 to wait indefinitely.</param>
+		/// <returns>The number of file descriptors with events or errors, 0 if the timeout expired, or -1 on error.</returns>
+		[DllImport("libc", SetLastError = true)]
+		public static extern int poll([In, Out] pollfd[] fds, ulong nfds, int timeout);
+	}
 }
