@@ -227,7 +227,7 @@ namespace SocketCANSharp.Network
 
             int bytesWritten = LibcNativeMethods.Write(SafeHandle, ref canFrame, Marshal.SizeOf(typeof(CanFrame)));
             if (bytesWritten == -1)
-                throw new SocketCanException("Writing to the underlying CAN_RAW socket failed.");
+                throw new SocketCanException(LibcNativeMethods.Errno, "Writing to the underlying CAN_RAW socket failed.");
 
             return bytesWritten;
         }
@@ -246,7 +246,7 @@ namespace SocketCANSharp.Network
 
             int bytesWritten = LibcNativeMethods.Write(SafeHandle, ref canFdFrame, Marshal.SizeOf(typeof(CanFdFrame)));
             if (bytesWritten == -1)
-                throw new SocketCanException("Writing to the underlying CAN_RAW socket failed.");
+                throw new SocketCanException(LibcNativeMethods.Errno, "Writing to the underlying CAN_RAW socket failed.");
 
             return bytesWritten;
         }
@@ -265,7 +265,7 @@ namespace SocketCANSharp.Network
 
             int bytesWritten = LibcNativeMethods.Write(SafeHandle, ref canXlFrame, SocketCanUtils.CanXlHeaderSize + canXlFrame.Length);
             if (bytesWritten == -1)
-                throw new SocketCanException("Writing to the underlying CAN_RAW socket failed.");
+                throw new SocketCanException(LibcNativeMethods.Errno, "Writing to the underlying CAN_RAW socket failed.");
 
             return bytesWritten;
         }
@@ -285,7 +285,7 @@ namespace SocketCANSharp.Network
             canFrame = new CanFrame();
             int bytesRead = LibcNativeMethods.Read(SafeHandle, ref canFrame, Marshal.SizeOf(typeof(CanFrame)));
             if (bytesRead == -1)
-                throw new SocketCanException("Reading from the underlying CAN_RAW socket failed.");
+                throw new SocketCanException(LibcNativeMethods.Errno, "Reading from the underlying CAN_RAW socket failed.");
 
             return bytesRead;
         }
@@ -339,7 +339,7 @@ namespace SocketCANSharp.Network
             canFdFrame = new CanFdFrame();
             int bytesRead = LibcNativeMethods.Read(SafeHandle, ref canFdFrame, Marshal.SizeOf(typeof(CanFdFrame)));
             if (bytesRead == -1)
-                throw new SocketCanException("Reading from the underlying CAN_RAW socket failed.");
+                throw new SocketCanException(LibcNativeMethods.Errno, "Reading from the underlying CAN_RAW socket failed.");
 
             return bytesRead;
         }
@@ -376,7 +376,7 @@ namespace SocketCANSharp.Network
             canXlFrame = new CanXlFrame();
             int bytesRead = LibcNativeMethods.Read(SafeHandle, ref canXlFrame, Marshal.SizeOf<CanXlFrame>());
             if (bytesRead == -1)
-                throw new SocketCanException("Reading from the underlying CAN_RAW socket failed.");
+                throw new SocketCanException(LibcNativeMethods.Errno, "Reading from the underlying CAN_RAW socket failed.");
 
             return bytesRead;
         }
@@ -389,7 +389,7 @@ namespace SocketCANSharp.Network
             int len = canFilterArray != null ? Marshal.SizeOf(typeof(CanFilter)) * canFilterArray.Length : 0;
             int result = LibcNativeMethods.SetSockOpt(SafeHandle, SocketLevel.SOL_CAN_RAW, CanSocketOptions.CAN_RAW_FILTER, canFilterArray, len);
             if (result != 0)
-                throw new SocketCanException("Unable to set CAN_RAW_FILTER on CAN_RAW socket.");    
+                throw new SocketCanException(LibcNativeMethods.Errno, "Unable to set CAN_RAW_FILTER on CAN_RAW socket.");    
         }
 
         private CanFilter[] GetRawCanFilters()
@@ -404,7 +404,7 @@ namespace SocketCANSharp.Network
             {
                 int result = LibcNativeMethods.GetSockOpt(SafeHandle, SocketLevel.SOL_CAN_RAW, (int)CanSocketOptions.CAN_RAW_FILTER, ptr, ref len);
                 if (result != 0)
-                    throw new SocketCanException("Unable to get CAN_RAW_FILTER on CAN_RAW socket.");
+                    throw new SocketCanException(LibcNativeMethods.Errno, "Unable to get CAN_RAW_FILTER on CAN_RAW socket.");
 
                 var canFilterArray = new CanFilter[len / size];
                 IntPtr iteratorPtr = ptr;
@@ -430,7 +430,7 @@ namespace SocketCANSharp.Network
             uint err_mask = (uint)errorMask;
             int result = LibcNativeMethods.SetSockOpt(SafeHandle, SocketLevel.SOL_CAN_RAW, CanSocketOptions.CAN_RAW_ERR_FILTER, ref err_mask, Marshal.SizeOf(err_mask));
             if (result != 0)
-                throw new SocketCanException("Unable to set CAN_RAW_ERR_FILTER on CAN_RAW socket."); 
+                throw new SocketCanException(LibcNativeMethods.Errno, "Unable to set CAN_RAW_ERR_FILTER on CAN_RAW socket."); 
         }
 
         private CanErrorClass GetRawCanErrorFrameFilters()
@@ -443,7 +443,7 @@ namespace SocketCANSharp.Network
             int result = LibcNativeMethods.GetSockOpt(SafeHandle, SocketLevel.SOL_CAN_RAW, CanSocketOptions.CAN_RAW_ERR_FILTER, ref err_mask, ref len);
 
             if (result != 0)
-                throw new SocketCanException("Unable to get CAN_RAW_ERR_FILTER on CAN_RAW socket.");
+                throw new SocketCanException(LibcNativeMethods.Errno, "Unable to get CAN_RAW_ERR_FILTER on CAN_RAW socket.");
 
             return (CanErrorClass)err_mask;
         }
@@ -457,7 +457,7 @@ namespace SocketCANSharp.Network
             int result = LibcNativeMethods.SetSockOpt(SafeHandle, SocketLevel.SOL_CAN_RAW, CanSocketOptions.CAN_RAW_LOOPBACK, ref loopback, Marshal.SizeOf(loopback));
             
             if (result != 0)
-                throw new SocketCanException("Unable to set CAN_RAW_LOOPBACK on CAN_RAW socket.");
+                throw new SocketCanException(LibcNativeMethods.Errno, "Unable to set CAN_RAW_LOOPBACK on CAN_RAW socket.");
         }
 
         private bool GetLoopback()
@@ -470,7 +470,7 @@ namespace SocketCANSharp.Network
             int result = LibcNativeMethods.GetSockOpt(SafeHandle, SocketLevel.SOL_CAN_RAW, CanSocketOptions.CAN_RAW_LOOPBACK, ref loopback, ref len);
 
             if (result != 0)
-                throw new SocketCanException("Unable to get CAN_RAW_LOOPBACK on CAN_RAW socket.");
+                throw new SocketCanException(LibcNativeMethods.Errno, "Unable to get CAN_RAW_LOOPBACK on CAN_RAW socket.");
 
             return loopback > 0;
         }
@@ -484,7 +484,7 @@ namespace SocketCANSharp.Network
             int result = LibcNativeMethods.SetSockOpt(SafeHandle, SocketLevel.SOL_CAN_RAW, CanSocketOptions.CAN_RAW_RECV_OWN_MSGS, ref recv_own_msgs, Marshal.SizeOf(recv_own_msgs));
             
             if (result != 0)
-                throw new SocketCanException("Unable to set CAN_RAW_RECV_OWN_MSGS on CAN_RAW socket.");
+                throw new SocketCanException(LibcNativeMethods.Errno, "Unable to set CAN_RAW_RECV_OWN_MSGS on CAN_RAW socket.");
         }
 
         private bool GetReceiveOwnMessages()
@@ -497,7 +497,7 @@ namespace SocketCANSharp.Network
             int result = LibcNativeMethods.GetSockOpt(SafeHandle, SocketLevel.SOL_CAN_RAW, CanSocketOptions.CAN_RAW_RECV_OWN_MSGS, ref recv_own_msgs, ref len);
 
             if (result != 0)
-                throw new SocketCanException("Unable to get CAN_RAW_RECV_OWN_MSGS on CAN_RAW socket.");
+                throw new SocketCanException(LibcNativeMethods.Errno, "Unable to get CAN_RAW_RECV_OWN_MSGS on CAN_RAW socket.");
 
             return recv_own_msgs > 0;
         }
@@ -511,7 +511,7 @@ namespace SocketCANSharp.Network
             int result = LibcNativeMethods.SetSockOpt(SafeHandle, SocketLevel.SOL_CAN_RAW, CanSocketOptions.CAN_RAW_FD_FRAMES, ref can_fd_enabled, Marshal.SizeOf(can_fd_enabled));
             
             if (result != 0)
-                throw new SocketCanException("Unable to set CAN_RAW_FD_FRAMES on CAN_RAW socket.");
+                throw new SocketCanException(LibcNativeMethods.Errno, "Unable to set CAN_RAW_FD_FRAMES on CAN_RAW socket.");
         }
 
         private bool GetEnableCanFdFrames()
@@ -524,7 +524,7 @@ namespace SocketCANSharp.Network
             int result = LibcNativeMethods.GetSockOpt(SafeHandle, SocketLevel.SOL_CAN_RAW, CanSocketOptions.CAN_RAW_FD_FRAMES, ref can_fd_enabled, ref len);
 
             if (result != 0)
-                throw new SocketCanException("Unable to get CAN_RAW_FD_FRAMES on CAN_RAW socket.");
+                throw new SocketCanException(LibcNativeMethods.Errno, "Unable to get CAN_RAW_FD_FRAMES on CAN_RAW socket.");
 
             return can_fd_enabled > 0;
         }
@@ -538,7 +538,7 @@ namespace SocketCANSharp.Network
             int result = LibcNativeMethods.SetSockOpt(SafeHandle, SocketLevel.SOL_CAN_RAW, CanSocketOptions.CAN_RAW_XL_FRAMES, ref can_xl_enabled, Marshal.SizeOf<int>());
             
             if (result != 0)
-                throw new SocketCanException("Unable to set CAN_RAW_XL_FRAMES on CAN_RAW socket.");
+                throw new SocketCanException(LibcNativeMethods.Errno, "Unable to set CAN_RAW_XL_FRAMES on CAN_RAW socket.");
         }
 
         private bool GetEnableCanXlFrames()
@@ -551,7 +551,7 @@ namespace SocketCANSharp.Network
             int result = LibcNativeMethods.GetSockOpt(SafeHandle, SocketLevel.SOL_CAN_RAW, CanSocketOptions.CAN_RAW_XL_FRAMES, ref can_xl_enabled, ref len);
 
             if (result != 0)
-                throw new SocketCanException("Unable to get CAN_RAW_XL_FRAMES on CAN_RAW socket.");
+                throw new SocketCanException(LibcNativeMethods.Errno, "Unable to get CAN_RAW_XL_FRAMES on CAN_RAW socket.");
 
             return can_xl_enabled > 0;
         }
@@ -565,7 +565,7 @@ namespace SocketCANSharp.Network
             int result = LibcNativeMethods.SetSockOpt(SafeHandle, SocketLevel.SOL_CAN_RAW, CanSocketOptions.CAN_RAW_JOIN_FILTERS, ref join_filter, Marshal.SizeOf(join_filter));
             
             if (result != 0)
-                throw new SocketCanException("Unable to set CAN_RAW_JOIN_FILTERS on CAN_RAW socket.");
+                throw new SocketCanException(LibcNativeMethods.Errno, "Unable to set CAN_RAW_JOIN_FILTERS on CAN_RAW socket.");
         }
 
         private bool GetAllCanFiltersMustMatch()
@@ -578,7 +578,7 @@ namespace SocketCANSharp.Network
             int result = LibcNativeMethods.GetSockOpt(SafeHandle, SocketLevel.SOL_CAN_RAW, CanSocketOptions.CAN_RAW_JOIN_FILTERS, ref join_filter, ref len);
 
             if (result != 0)
-                throw new SocketCanException("Unable to get CAN_RAW_JOIN_FILTERS on CAN_RAW socket.");
+                throw new SocketCanException(LibcNativeMethods.Errno, "Unable to get CAN_RAW_JOIN_FILTERS on CAN_RAW socket.");
 
             return join_filter > 0;
         }
@@ -593,7 +593,7 @@ namespace SocketCANSharp.Network
             int result = LibcNativeMethods.GetSockName(SafeHandle, addr, ref size);
 
             if (result != 0)
-                throw new SocketCanException("Unable to get name on CAN_RAW socket.");
+                throw new SocketCanException(LibcNativeMethods.Errno, "Unable to get name on CAN_RAW socket.");
 
             return addr;
         }
@@ -625,7 +625,7 @@ namespace SocketCANSharp.Network
                 if (bytesRead == -1)
                 {
                     frame = default(T);
-                    throw new SocketCanException("Reading from the underlying CAN_RAW socket failed.");
+                    throw new SocketCanException(LibcNativeMethods.Errno, "Reading from the underlying CAN_RAW socket failed.");
                 }
 
                 IoVector iov = Marshal.PtrToStructure<IoVector>(msgHdr.IoVectors);
