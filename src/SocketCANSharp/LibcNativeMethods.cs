@@ -32,8 +32,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #endregion
 
-using SocketCANSharp;
-
 using System;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
@@ -49,6 +47,7 @@ namespace SocketCANSharp
         /// </summary>
         public static int Errno { get { return Marshal.GetLastWin32Error(); } }
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 		public enum ErrnoValues : int
 		{
 			EPERM = 1,
@@ -1062,5 +1061,6 @@ namespace SocketCANSharp
         /// <returns>Valid IntPtr pointing to a buffer containing the Interface Name on success, IntPtr.Zero (null) on failure.</returns>
         [DllImport("libc", EntryPoint="if_indextoname", SetLastError=true)]
         public static extern IntPtr IfIndexToName(uint index, IntPtr namePtr);
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 	}
 }
