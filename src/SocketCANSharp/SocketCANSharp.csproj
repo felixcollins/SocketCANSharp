@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <OutputType>Library</OutputType>
     <AssemblyName>SocketCANSharp</AssemblyName>
     <Version>0.11.0.0</Version>
@@ -21,7 +21,8 @@
     <PackageTags>CAN-bus;ISO-TP;ISO15765;J1939;CAN_GW</PackageTags>
     <!--<PackageReleaseNotes></PackageReleaseNotes>-->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <IsPackable>false</IsPackable>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
   <ItemGroup>
